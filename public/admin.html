@@ -3,11 +3,16 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
+window.onload = async function () {
 
   try {
     const res = await fetch("/agendamentos");
     const dados = await res.json();
+
+    if (!Array.isArray(dados)) {
+      alert("Erro: dados inválidos do servidor");
+      return;
+    }
 
     const prof = {};
 
@@ -17,24 +22,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    const labels = Object.keys(prof);
-    const values = Object.values(prof);
+    const ctx = document.getElementById("grafico");
 
-    // se não tiver dados, não quebra
-    if (labels.length === 0) {
-      document.getElementById("grafico").insertAdjacentHTML(
-        "beforebegin",
-        "<p>Nenhum agendamento ainda.</p>"
-      );
-      return;
-    }
-
-    new Chart(document.getElementById("grafico"), {
+    new Chart(ctx, {
       type: "doughnut",
       data: {
-        labels: labels,
+        labels: Object.keys(prof),
         datasets: [{
-          data: values,
+          data: Object.values(prof),
           backgroundColor: [
             "#FF6384",
             "#36A2EB",
@@ -46,9 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }]
       },
       options: {
-        animation: {
-          duration: 1200
-        },
+        responsive: true,
         plugins: {
           legend: {
             position: "bottom"
@@ -57,12 +50,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-  } catch (err) {
-    console.log("Erro gráfico:", err);
-    alert("Erro ao carregar gráfico");
+  } catch (error) {
+    console.log(error);
+    alert("Erro ao carregar dados do gráfico");
   }
 
-});
+};
 </script>
   });
 }
