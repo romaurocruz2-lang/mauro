@@ -1,9 +1,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<canvas id="grafico"></canvas>
+<canvas id="grafico" style="max-width:500px;margin-top:20px;"></canvas>
 
 <script>
-async function grafico() {
+window.onload = async function () {
   const res = await fetch("/agendamentos");
   const dados = await res.json();
 
@@ -13,17 +13,17 @@ async function grafico() {
     contagem[a.profissional] = (contagem[a.profissional] || 0) + 1;
   });
 
-  new Chart(document.getElementById("grafico"), {
+  const ctx = document.getElementById("grafico");
+
+  new Chart(ctx, {
     type: "bar",
     data: {
       labels: Object.keys(contagem),
       datasets: [{
-        label: "Agendamentos",
+        label: "Agendamentos por profissional",
         data: Object.values(contagem)
       }]
     }
   });
-}
-
-grafico();
+};
 </script>
