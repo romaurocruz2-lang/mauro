@@ -1,160 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Painel Admin</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body {
-      font-family: Arial;
-      background: #f5f6f8;
-      margin: 0;
-      padding: 20px;
+new Chart(document.getElementById("grafico"), {
+  type: "doughnut",
+  data: {
+    labels: Object.keys(prof),
+    datasets: [{
+      data: Object.values(prof),
+      backgroundColor: [
+        "#FF6384","#36A2EB","#FFCE56",
+        "#4BC0C0","#9966FF","#FF9F40"
+      ],
+      hoverOffset: 20
+    }]
+  },
+  options: {
+    animation: {
+      animateScale: true,
+      animateRotate: true
+    },
+    plugins: {
+      legend: {
+        position: "bottom"
+      }
     }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-
-    .card h2 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .section {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
-
-    canvas {
-      max-width: 400px;
-      margin: auto;
-      display: block;
-    }
-
-    .lista p {
-      border-bottom: 1px solid #eee;
-      padding: 8px 0;
-      margin: 0;
-    }
-  </style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <h1>📊 Visão Geral do Salão</h1>
-
-  <div class="grid">
-    <div class="card">
-      <h2 id="hoje">0</h2>
-      <p>Hoje</p>
-    </div>
-
-    <div class="card">
-      <h2 id="semana">0</h2>
-      <p>Semana</p>
-    </div>
-
-    <div class="card">
-      <h2 id="mes">0</h2>
-      <p>Mês</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h3>👩‍💇‍♀️ Agendamentos por Profissional</h3>
-    <canvas id="grafico"></canvas>
-  </div>
-
-  <div class="section">
-    <h3>📅 Últimos Agendamentos</h3>
-    <div class="lista" id="lista"></div>
-  </div>
-
-</div>
-
-<script>
-async function carregar() {
-  const res = await fetch("/agendamentos");
-  const dados = await res.json();
-
-  const hoje = new Date().toISOString().split("T")[0];
-
-  let countHoje = 0;
-  let countSemana = 0;
-  let countMes = 0;
-
-  const prof = {};
-
-  dados.forEach(a => {
-    if (a.data === hoje) countHoje++;
-
-    countSemana++;
-    countMes++;
-
-    prof[a.profissional] = (prof[a.profissional] || 0) + 1;
-  });
-
-  document.getElementById("hoje").innerText = countHoje;
-  document.getElementById("semana").innerText = countSemana;
-  document.getElementById("mes").innerText = countMes;
-
-  // gráfico menor e mais limpo
-  new Chart(document.getElementById("grafico"), {
-    type: "doughnut",
-    data: {
-      labels: Object.keys(prof),
-      datasets: [{
-        data: Object.values(prof),
-        backgroundColor: ["#000", "#333", "#666", "#999", "#bbb"]
-      }]
-    }
-  });
-
-  // lista mais limpa
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  dados.slice(-8).reverse().forEach(a => {
-    lista.innerHTML += `
-      <p><b>${a.nome}</b> - ${a.profissional} <br>
-      ${a.data} às ${a.horario}</p>
-    `;
-  });
-}
-
-carregar();
-</script>
-
-</body>
-</html>
-
-carregar();
-</script>
-
-</body>
-</html>
+  }
+});
