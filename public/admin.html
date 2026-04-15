@@ -1,5 +1,3 @@
-<canvas id="grafico" style="max-width:400px;margin:20px auto;display:block;"></canvas>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -9,33 +7,14 @@ async function carregar() {
 
   if (!Array.isArray(dados)) return;
 
-  const hoje = new Date().toISOString().split("T")[0];
-
-  let hojeCount = 0;
-  let semanaCount = 0;
-  let mesCount = 0;
-
   const prof = {};
 
-  const agora = new Date();
-  const seteDias = 7 * 24 * 60 * 60 * 1000;
-
   dados.forEach(a => {
-    if (a.data === hoje) hojeCount++;
-
-    const dataAg = new Date(a.data);
-    if (agora - dataAg <= seteDias) semanaCount++;
-
-    mesCount++;
-
     if (a.profissional) {
       prof[a.profissional] = (prof[a.profissional] || 0) + 1;
     }
   });
 
-  document.getElementById("hoje").innerText = hojeCount;
-  document.getElementById("semana").innerText = semanaCount;
-  document.getElementById("mes").innerText = mesCount;
   document.getElementById("total").innerText = dados.length;
 
   new Chart(document.getElementById("grafico"), {
@@ -44,31 +23,16 @@ async function carregar() {
       labels: Object.keys(prof),
       datasets: [{
         data: Object.values(prof),
-        backgroundColor: [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56",
-          "#4BC0C0",
-          "#9966FF",
-          "#FF9F40"
-        ]
+        backgroundColor: ["#FF6384","#36A2EB","#FFCE56","#4BC0C0"]
       }]
-    },
-    options: {
-      plugins: {
-        legend: { position: "bottom" }
-      }
     }
   });
 
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  dados.slice(-10).reverse().forEach(a => {
-    lista.innerHTML += `
-      <p><b>${a.nome}</b> - ${a.profissional}<br>
-      ${a.data} às ${a.horario}</p>
-    `;
+  dados.forEach(a => {
+    lista.innerHTML += `<p>${a.nome} - ${a.profissional} - ${a.data}</p>`;
   });
 }
 
