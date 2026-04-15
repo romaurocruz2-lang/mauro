@@ -1,4 +1,8 @@
-const express = require("express");
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb+srv://romaurocruz2_db_user:IvAlA43mIQQa1sAc@cluster0.0mvwde9.mongodb.net/agendamentos")
+.then(() => console.log("MongoDB conectado"))
+.catch(err => console.log(err));const express = require("express");
 const cors = require("cors");
 
 const app = express();
