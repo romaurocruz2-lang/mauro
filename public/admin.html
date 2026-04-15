@@ -1,89 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Painel Admin</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #f2f2f2; }
-    .box { background: white; padding: 20px; border-radius: 10px; max-width: 800px; margin: auto; }
-    input, button, select { padding: 10px; margin: 5px; width: 100%; }
-    .agendamento { border-bottom: 1px solid #ddd; padding: 10px 0; }
-  </style>
-</head>
-<body>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="box">
-
-  <h1>Painel Admin</h1>
-
-  <!-- LOGIN -->
-  <div id="loginBox">
-    <h3>Login</h3>
-    <input id="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
-  </div>
-
-  <!-- PAINEL -->
-  <div id="painel" style="display:none">
-
-    <h3>Filtrar por profissional</h3>
-    <select id="filtro" onchange="carregar()">
-      <option value="">Todos</option>
-      <option>Ana Beatriz</option>
-      <option>Juliana Santos</option>
-      <option>Mariana Lima</option>
-      <option>Camila Rocha</option>
-      <option>Larissa Alves</option>
-    </select>
-
-    <h3>Agendamentos</h3>
-    <div id="lista"></div>
-
-  </div>
-
-</div>
+<canvas id="grafico"></canvas>
 
 <script>
-const EMAIL = "admin@salon.com";
-const SENHA = "Salon@2026";
-
-function login() {
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-
-  if(email === EMAIL && senha === SENHA){
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("painel").style.display = "block";
-    carregar();
-  } else {
-    alert("Login inválido");
-  }
-}
-
-async function carregar(){
+async function grafico() {
   const res = await fetch("/agendamentos");
-  let dados = await res.json();
+  const dados = await res.json();
 
-  const filtro = document.getElementById("filtro").value;
+  const contagem = {};
 
-  if(filtro){
-    dados = dados.filter(a => a.profissional === filtro);
-  }
+  dados.forEach(a => {
+    contagem[a.profissional] = (contagem[a.profissional] || 0) + 1;
+  });
 
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  dados.reverse().forEach(a => {
-    lista.innerHTML += `
-      <div class="agendamento">
-        <b>${a.nome}</b><br>
-        ${a.profissional} - ${a.servico}<br>
-        ${a.data} às ${a.horario}
-      </div>
-    `;
+  new Chart(document.getElementById("grafico"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(contagem),
+      datasets: [{
+        label: "Agendamentos",
+        data: Object.values(contagem)
+      }]
+    }
   });
 }
-</script>
 
-</body>
-</html>
+grafico();
+</script>
