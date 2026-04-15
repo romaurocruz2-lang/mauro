@@ -57,6 +57,72 @@ window.onload = async function () {
 
 };
 </script>
+async function carregar() {
+  const res = await fetch("/agendamentos");
+  const dados = await res.json();
+
+  const hoje = new Date().toISOString().split("T")[0];
+
+  let hojeCount = 0;
+  let semanaCount = 0;
+  let mesCount = 0;
+
+  const prof = {};
+
+  const agora = new Date();
+  const seteDias = 7 * 24 * 60 * 60 * 1000;
+
+  dados.forEach(a => {
+    const dataAg = new Date(a.data);
+
+    // hoje
+    if (a.data === hoje) hojeCount++;
+
+    // semana
+    if (agora - dataAg <= seteDias) semanaCount++;
+
+    // mês
+    mesCount++;
+
+    // profissional
+    prof[a.profissional] = (prof[a.profissional] || 0) + 1;
+  });
+
+  document.getElementById("hoje").innerText = hojeCount;
+  document.getElementById("semana").innerText = semanaCount;
+  document.getElementById("mes").innerText = mesCount;
+  document.getElementById("total").innerText = dados.length;
+
+  // gráfico
+  new Chart(document.getElementById("grafico"), {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(prof),
+      datasets: [{
+        data: Object.values(prof),
+        backgroundColor: ["#FF6384","#36A2EB","#FFCE56","#4BC0C0","#9966FF","#FF9F40"]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom" }
+      }
+    }
+  });
+
+  // lista
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  dados.slice(-10).reverse().forEach(a => {
+    lista.innerHTML += `
+      <p><b>${a.nome}</b> - ${a.profissional}<br>
+      ${a.data} às ${a.horario}</p>
+    `;
+  });
+}
+
+carregar();
   });
 }
 
