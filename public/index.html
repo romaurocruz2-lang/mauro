@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Agendamento</title>
+</head>
+<body>
+  <h1>Sistema de Agendamento</h1>
+
+  <form id="form">
+    <input id="nome" placeholder="Nome" required>
+    <input id="profissional" placeholder="Profissional" required>
+    <input id="servico" placeholder="Serviço" required>
+    <input id="data" placeholder="Data" required>
+    <input id="horario" placeholder="Horário" required>
+
+    <button type="submit">Agendar</button>
+  </form>
+
+  <script>
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      await fetch("/agendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: nome.value,
+          profissional: profissional.value,
+          servico: servico.value,
+          data: data.value,
+          horario: horario.value
+        })
+      });
+
+      alert("Agendado com sucesso!");
+    });
+  </script>
+</body>
+</html>
