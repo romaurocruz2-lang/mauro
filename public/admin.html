@@ -1,29 +1,44 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <canvas id="grafico" style="max-width:500px;margin-top:20px;"></canvas>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-window.onload = async function () {
-  const res = await fetch("/agendamentos");
-  const dados = await res.json();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const res = await fetch("/agendamentos");
+    const dados = await res.json();
 
-  const contagem = {};
+    const contagem = {};
 
-  dados.forEach(a => {
-    contagem[a.profissional] = (contagem[a.profissional] || 0) + 1;
-  });
+    dados.forEach(a => {
+      contagem[a.profissional] = (contagem[a.profissional] || 0) + 1;
+    });
 
-  const ctx = document.getElementById("grafico");
+    const labels = Object.keys(contagem);
+    const valores = Object.values(contagem);
 
-  new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: Object.keys(contagem),
-      datasets: [{
-        label: "Agendamentos por profissional",
-        data: Object.values(contagem)
-      }]
+    if (labels.length === 0) {
+      document.getElementById("grafico").insertAdjacentHTML(
+        "beforebegin",
+        "<p>Nenhum agendamento ainda.</p>"
+      );
+      return;
     }
-  });
-};
+
+    new Chart(document.getElementById("grafico"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Agendamentos por profissional",
+          data: valores
+        }]
+      }
+    });
+
+  } catch (err) {
+    console.log(err);
+    alert("Erro ao carregar gráfico");
+  }
+});
 </script>
