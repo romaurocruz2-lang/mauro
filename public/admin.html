@@ -1,44 +1,130 @@
-<canvas id="grafico" style="max-width:500px;margin-top:20px;"></canvas>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("/agendamentos");
-    const dados = await res.json();
-
-    const contagem = {};
-
-    dados.forEach(a => {
-      contagem[a.profissional] = (contagem[a.profissional] || 0) + 1;
-    });
-
-    const labels = Object.keys(contagem);
-    const valores = Object.values(contagem);
-
-    if (labels.length === 0) {
-      document.getElementById("grafico").insertAdjacentHTML(
-        "beforebegin",
-        "<p>Nenhum agendamento ainda.</p>"
-      );
-      return;
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Painel Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
     }
 
-    new Chart(document.getElementById("grafico"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Agendamentos por profissional",
-          data: valores
-        }]
-      }
-    });
+    .container {
+      max-width: 1000px;
+      margin: auto;
+    }
 
-  } catch (err) {
-    console.log(err);
-    alert("Erro ao carregar gráfico");
-  }
-});
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .box {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    h2 { margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>Visão Geral</h1>
+
+  <div class="grid">
+    <div class="box">
+      <h2 id="hoje">0</h2>
+      <p>Hoje</p>
+    </div>
+
+    <div class="box">
+      <h2 id="semana">0</h2>
+      <p>Esta Semana</p>
+    </div>
+
+    <div class="box">
+      <h2 id="mes">0</h2>
+      <p>Este Mês</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Agendamentos por Profissional</h3>
+    <canvas id="grafico"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Agenda do Dia</h3>
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<script>
+async function carregar() {
+  const res = await fetch("/agendamentos");
+  const dados = await res.json();
+
+  const hoje = new Date().toISOString().split("T")[0];
+
+  let countHoje = 0;
+  let countSemana = 0;
+  let countMes = 0;
+
+  const contProf = {};
+
+  dados.forEach(a => {
+
+    if(a.data === hoje) countHoje++;
+
+    countSemana++;
+    countMes++;
+
+    contProf[a.profissional] = (contProf[a.profissional] || 0) + 1;
+  });
+
+  document.getElementById("hoje").innerText = countHoje;
+  document.getElementById("semana").innerText = countSemana;
+  document.getElementById("mes").innerText = countMes;
+
+  new Chart(document.getElementById("grafico"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(contProf),
+      datasets: [{
+        label: "Agendamentos",
+        data: Object.values(contProf)
+      }]
+    }
+  });
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  dados.slice(-5).forEach(a => {
+    lista.innerHTML += `
+      <p><b>${a.nome}</b> - ${a.profissional} (${a.data} ${a.horario})</p>
+    `;
+  });
+}
+
+carregar();
 </script>
+
+</body>
+</html>
