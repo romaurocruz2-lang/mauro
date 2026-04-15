@@ -1,39 +1,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Agendamento</title>
+  <title>Salão de Beleza</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f7f7f7;
+      padding: 20px;
+    }
+
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #333;
+    }
+  </style>
 </head>
 <body>
-  <h1>Sistema de Agendamento</h1>
+
+<div class="box">
+  <h1>Agendamento Salão</h1>
 
   <form id="form">
-    <input id="nome" placeholder="Nome" required>
-    <input id="profissional" placeholder="Profissional" required>
-    <input id="servico" placeholder="Serviço" required>
-    <input id="data" placeholder="Data" required>
-    <input id="horario" placeholder="Horário" required>
+
+    <input id="nome" placeholder="Seu nome" required>
+
+    <select id="profissional">
+      <option>Ana Beatriz</option>
+      <option>Juliana Santos</option>
+      <option>Mariana Lima</option>
+      <option>Camila Rocha</option>
+      <option>Larissa Alves</option>
+    </select>
+
+    <select id="servico">
+      <option>Corte - R$ 50</option>
+      <option>Escova - R$ 40</option>
+      <option>Hidratação - R$ 60</option>
+      <option>Finalização - R$ 30</option>
+    </select>
+
+    <input id="data" type="date" required>
+    <input id="horario" type="time" required>
 
     <button type="submit">Agendar</button>
   </form>
+</div>
 
-  <script>
-    document.getElementById("form").addEventListener("submit", async (e) => {
-      e.preventDefault();
+<script>
+document.getElementById("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-      await fetch("/agendar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: nome.value,
-          profissional: profissional.value,
-          servico: servico.value,
-          data: data.value,
-          horario: horario.value
-        })
-      });
+  await fetch("/agendar", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      nome: nome.value,
+      profissional: profissional.value,
+      servico: servico.value,
+      data: data.value,
+      horario: horario.value
+    })
+  });
 
-      alert("Agendado com sucesso!");
-    });
-  </script>
+  alert("Agendamento realizado com sucesso!");
+});
+</script>
+
 </body>
 </html>
