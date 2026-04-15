@@ -3,74 +3,96 @@
 <head>
   <title>Painel Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       font-family: Arial;
-      background: #f4f4f4;
+      background: #f5f6f8;
       margin: 0;
       padding: 20px;
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: auto;
     }
 
-    .card {
-      background: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    h1 {
+      margin-bottom: 10px;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+      margin-bottom: 20px;
     }
 
-    .box {
+    .card {
       background: white;
       padding: 15px;
       border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
       text-align: center;
     }
 
-    h2 { margin: 5px 0; }
+    .card h2 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .section {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+
+    canvas {
+      max-width: 400px;
+      margin: auto;
+      display: block;
+    }
+
+    .lista p {
+      border-bottom: 1px solid #eee;
+      padding: 8px 0;
+      margin: 0;
+    }
   </style>
 </head>
+
 <body>
 
 <div class="container">
 
-  <h1>Visão Geral</h1>
+  <h1>📊 Visão Geral do Salão</h1>
 
   <div class="grid">
-    <div class="box">
+    <div class="card">
       <h2 id="hoje">0</h2>
       <p>Hoje</p>
     </div>
 
-    <div class="box">
+    <div class="card">
       <h2 id="semana">0</h2>
-      <p>Esta Semana</p>
+      <p>Semana</p>
     </div>
 
-    <div class="box">
+    <div class="card">
       <h2 id="mes">0</h2>
-      <p>Este Mês</p>
+      <p>Mês</p>
     </div>
   </div>
 
-  <div class="card">
-    <h3>Agendamentos por Profissional</h3>
+  <div class="section">
+    <h3>👩‍💇‍♀️ Agendamentos por Profissional</h3>
     <canvas id="grafico"></canvas>
   </div>
 
-  <div class="card">
-    <h3>Agenda do Dia</h3>
-    <div id="lista"></div>
+  <div class="section">
+    <h3>📅 Últimos Agendamentos</h3>
+    <div class="lista" id="lista"></div>
   </div>
 
 </div>
@@ -86,42 +108,50 @@ async function carregar() {
   let countSemana = 0;
   let countMes = 0;
 
-  const contProf = {};
+  const prof = {};
 
   dados.forEach(a => {
-
-    if(a.data === hoje) countHoje++;
+    if (a.data === hoje) countHoje++;
 
     countSemana++;
     countMes++;
 
-    contProf[a.profissional] = (contProf[a.profissional] || 0) + 1;
+    prof[a.profissional] = (prof[a.profissional] || 0) + 1;
   });
 
   document.getElementById("hoje").innerText = countHoje;
   document.getElementById("semana").innerText = countSemana;
   document.getElementById("mes").innerText = countMes;
 
+  // gráfico menor e mais limpo
   new Chart(document.getElementById("grafico"), {
-    type: "bar",
+    type: "doughnut",
     data: {
-      labels: Object.keys(contProf),
+      labels: Object.keys(prof),
       datasets: [{
-        label: "Agendamentos",
-        data: Object.values(contProf)
+        data: Object.values(prof),
+        backgroundColor: ["#000", "#333", "#666", "#999", "#bbb"]
       }]
     }
   });
 
+  // lista mais limpa
   const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  dados.slice(-5).forEach(a => {
+  dados.slice(-8).reverse().forEach(a => {
     lista.innerHTML += `
-      <p><b>${a.nome}</b> - ${a.profissional} (${a.data} ${a.horario})</p>
+      <p><b>${a.nome}</b> - ${a.profissional} <br>
+      ${a.data} às ${a.horario}</p>
     `;
   });
 }
+
+carregar();
+</script>
+
+</body>
+</html>
 
 carregar();
 </script>
