@@ -1,97 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Salão de Beleza</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f7f7f7;
-      padding: 20px;
-    }
-
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 500px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-      text-align: center;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #333;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Sistema de Agendamento</title>
 </head>
-<body>
 
-<div class="box">
-  <h1>Agendamento Salão</h1>
+<body style="font-family: Arial; text-align:center; background:#f4f4f4; padding:50px;">
 
-  <form id="form">
+  <h1>Bem-vindo ao Sistema de Agendamento</h1>
 
-    <input id="nome" placeholder="Seu nome" required>
+  <p>Gerencie seus horários de forma simples e rápida</p>
 
-    <select id="profissional">
-      <option>Ana Beatriz</option>
-      <option>Juliana Santos</option>
-      <option>Mariana Lima</option>
-      <option>Camila Rocha</option>
-      <option>Larissa Alves</option>
-    </select>
+  <br><br>
 
-    <select id="servico">
-      <option>Corte - R$ 50</option>
-      <option>Escova - R$ 40</option>
-      <option>Hidratação - R$ 60</option>
-      <option>Finalização - R$ 30</option>
-    </select>
+  <a href="/login.html" style="
+    background:#007bff;
+    color:white;
+    padding:12px 20px;
+    text-decoration:none;
+    border-radius:8px;
+    font-size:18px;
+  ">
+    Entrar no sistema
+  </a>
 
-    <input id="data" type="date" required>
-    <input id="horario" type="time" required>
+  <br><br><br>
 
-    <button type="submit">Agendar</button>
-  </form>
-</div>
-
-<script>
-document.getElementById("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  await fetch("/agendar", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      nome: nome.value,
-      profissional: profissional.value,
-      servico: servico.value,
-      data: data.value,
-      horario: horario.value
-    })
-  });
-
-  alert("Agendamento realizado com sucesso!");
-});
-</script>
+  <p style="color:#666;">
+    Sistema online de agendamentos profissionais
+  </p>
 
 </body>
 </html>
+
