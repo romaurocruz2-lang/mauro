@@ -1,57 +1,60 @@
-<h1>Painel Admin</h1>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Admin</title>
+</head>
 
-<p>Total: <span id="total">0</span></p>
+<body style="font-family: Arial; background:#f4f4f4; padding:20px;">
 
-<canvas id="grafico"></canvas>
+  <h1>Painel Admin</h1>
 
-<h3>Agendamentos</h3>
-<div id="lista"></div>
+  <p>Total de agendamentos: <span id="total">0</span></p>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <hr>
 
-<script>
-async function carregar() {
-  const res = await fetch("/agendamentos");
-  const dados = await res.json();
+  <h3>Lista de Agendamentos</h3>
 
-  if (!Array.isArray(dados)) return;
+  <div id="lista"></div>
 
-  const prof = {};
+  <script>
+    async function carregar() {
+      try {
+        const res = await fetch("/agendamentos");
+        const dados = await res.json();
 
-  dados.forEach(a => {
-    if (a.profissional) {
-      prof[a.profissional] = (prof[a.profissional] || 0) + 1;
+        // total
+        document.getElementById("total").innerText = dados.length;
+
+        // lista
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        if (dados.length === 0) {
+          lista.innerHTML = "<p>Nenhum agendamento ainda.</p>";
+          return;
+        }
+
+        dados.forEach(a => {
+          lista.innerHTML += `
+            <div style="background:#fff;padding:10px;margin:10px 0;border-radius:8px;">
+              <b>Nome:</b> ${a.nome || "—"} <br>
+              <b>Profissional:</b> ${a.profissional || "—"} <br>
+              <b>Serviço:</b> ${a.servico || "—"} <br>
+              <b>Data:</b> ${a.data || "—"} <br>
+              <b>Hora:</b> ${a.hora || "—"}
+            </div>
+          `;
+        });
+
+      } catch (err) {
+        document.getElementById("lista").innerHTML =
+          "<p style='color:red;'>Erro ao carregar dados</p>";
+      }
     }
-  });
 
-  document.getElementById("total").innerText = dados.length;
+    carregar();
+  </script>
 
-  new Chart(document.getElementById("grafico"), {
-    type: "doughnut",
-    data: {
-      labels: Object.keys(prof),
-      datasets: [{
-        data: Object.values(prof),
-        backgroundColor: ["#FF6384","#36A2EB","#FFCE56","#4BC0C0"]
-      }]
-    }
-  });
-
-  const lista = document.getElementById("lista");
-  lista.innerHTML = "";
-
-  dados.forEach(a => {
-    lista.innerHTML += `
-      <p>
-        <b>${a.nome}</b><br>
-        ${a.profissional}<br>
-        ${a.servico}<br>
-        ${a.data} às ${a.horario}
-      </p>
-      <hr>
-    `;
-  });
-}
-
-carregar();
-</script>
+</body>
+</html>
