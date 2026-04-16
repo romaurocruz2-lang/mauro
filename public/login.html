@@ -1,29 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-  <title>Login</title>
+  <meta charset="UTF-8">
+  <title>Login do Sistema</title>
 </head>
-<body style="font-family:Arial;text-align:center;margin-top:100px;">
 
-  <h2>Login do Sistema</h2>
+<body style="font-family: Arial; text-align:center; background:#f4f4f4; padding:50px;">
 
-  <input id="user" placeholder="Usuário"><br><br>
-  <input id="pass" type="password" placeholder="Senha"><br><br>
+  <h1>Login do Sistema</h1>
 
-  <button onclick="logar()">Entrar</button>
+  <p>Entre com seu acesso</p>
+
+  <br>
+
+  <input id="user" placeholder="Usuário" style="padding:10px;width:200px;"><br><br>
+
+  <input id="pass" type="password" placeholder="Senha" style="padding:10px;width:200px;"><br><br>
+
+  <button onclick="login()" style="
+    padding:10px 20px;
+    background:#28a745;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+  ">
+    Entrar
+  </button>
+
+  <p id="msg" style="color:red;"></p>
 
   <script>
-    function logar() {
+    async function login() {
       const user = document.getElementById("user").value;
       const pass = document.getElementById("pass").value;
 
-      if (user === "admin" && pass === "123456") {
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user, pass })
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
         window.location.href = "/admin.html";
       } else {
-        alert("Login incorreto");
+        document.getElementById("msg").innerText = "Usuário ou senha incorretos";
       }
     }
   </script>
 
 </body>
 </html>
+
