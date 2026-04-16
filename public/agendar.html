@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Agendar Horário</title>
+</head>
+
+<body style="font-family: Arial; text-align:center; padding:30px;">
+
+  <h1>Agendar Horário</h1>
+
+  <input id="nome" placeholder="Seu nome"><br><br>
+
+  <input id="whatsapp" placeholder="WhatsApp"><br><br>
+
+  <input id="servico" placeholder="Serviço"><br><br>
+
+  <input id="profissional" placeholder="Profissional"><br><br>
+
+  <input id="data" type="date"><br><br>
+
+  <input id="hora" type="time"><br><br>
+
+  <button onclick="agendar()">Agendar</button>
+
+  <p id="msg"></p>
+
+  <script>
+    async function agendar() {
+      const dados = {
+        nome: document.getElementById("nome").value,
+        whatsapp: document.getElementById("whatsapp").value,
+        servico: document.getElementById("servico").value,
+        profissional: document.getElementById("profissional").value,
+        data: document.getElementById("data").value,
+        hora: document.getElementById("hora").value
+      };
+
+      const res = await fetch("/agendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados)
+      });
+
+      const data = await res.json();
+
+      if (data.ok) {
+        document.getElementById("msg").innerText = "Agendado com sucesso!";
+      } else {
+        document.getElementById("msg").innerText = "Erro ao agendar";
+      }
+    }
+  </script>
+
+</body>
+</html>
