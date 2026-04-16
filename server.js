@@ -39,9 +39,21 @@ app.post("/agendar", (req, res) => {
   res.json({ ok: true, message: "Agendamento criado" });
 });
 
-/* ---------------- LISTAR ---------------- */
+/* ---------------- LISTAR AGENDAMENTOS ---------------- */
 app.get("/agendamentos", (req, res) => {
   res.json(agendamentos);
+});
+
+/* ---------------- HORÁRIOS DISPONÍVEIS ---------------- */
+app.get("/horarios-disponiveis", (req, res) => {
+  const horarios = [
+    "08:00", "08:30", "09:00", "09:30",
+    "10:00", "10:30", "11:00", "11:30",
+    "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30", "17:00", "17:30"
+  ];
+
+  res.json(horarios);
 });
 
 /* ---------------- START ---------------- */
