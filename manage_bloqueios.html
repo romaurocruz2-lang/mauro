@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ronamy — Agendamento Online</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta name="description" content="Agende seu horário no Salão Ronamy. Beleza que transforma sua autoestima.">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-brand">
+        <div class="navbar-logo">R</div>
+        <div>
+          <div class="navbar-title">Ronamy</div>
+          <span class="navbar-subtitle">Salão de Beleza</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/#servicos">Serviços</a></li>
+        <li><a href="/#agendar">Agendar</a></li>
+        <li><a href="/login" class="btn-gold">Admin</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container" style="padding-top: 20px;">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            {% if category == 'success' %}✓{% else %}✕{% endif %}
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✦ Salão de Beleza ✦</div>
+      <h1>Salão <span>Ronamy</span></h1>
+      <p class="hero-slogan">"Beleza que transforma sua autoestima"</p>
+      <p class="hero-desc">Agende seu horário online de forma rápida e fácil. Profissionais especializadas para realçar a sua beleza.</p>
+      <div class="hero-divider"></div>
+      <a href="#agendar" class="btn btn-primary btn-lg">
+        ✦ Agendar Agora
+      </a>
+    </div>
+  </section>
+
+  <div class="main-content">
+
+    <!-- SERVIÇOS -->
+    <section id="servicos" style="margin-bottom: 60px;">
+      <h2 class="section-title">Nossos Serviços</h2>
+      <div class="services-grid">
+        {% for s in servicos %}
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="service-name">{{ s.nome }}</div>
+            <div class="service-price">R$ {{ "%.0f"|format(s.preco) }}</div>
+          </div>
+          <div class="service-duration">
+            ⏱ 
+            {% if s.duracao >= 60 %}
+              {% set h = s.duracao // 60 %}
+              {% set m = s.duracao % 60 %}
+              {% if m == 0 %}
+                {{ h }}h
+              {% else %}
+                {{ h }}h{{ m }}min
+              {% endif %}
+            {% else %}
+              {{ s.duracao }} minutos
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- FORMULÁRIO DE AGENDAMENTO -->
+    <section id="agendar">
+      <div class="form-section">
+        <h2 class="form-title">✦ Agendar Horário</h2>
+        <p class="form-subtitle">Preencha os dados abaixo para realizar seu agendamento.</p>
+
+        <form action="/agendar" method="POST" id="formAgendamento">
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label for="nome">Seu nome *</label>
+              <input type="text" id="nome" name="nome" placeholder="Ex: Maria Silva" required>
+            </div>
+
+            <div class="form-group">
+              <label for="telefone">WhatsApp *</label>
+              <input type="tel" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
+            </div>
+
+            <div class="form-group">
+              <label for="servico_id">Serviço *</label>
+              <select id="servico_id" name="servico_id" required onchange="atualizarHorarios()">
+                <option value="">— Escolha um serviço —</option>
+                {% for s in servicos %}
+                <option value="{{ s.id }}" data-duracao="{{ s.duracao }}">
+                  {{ s.nome }} — R$ {{ "%.0f"|format(s.preco) }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="profissional_id">Profissional *</label>
+              <select id="profissional_id" name="profissional_id" required onchange="atualizarHorarios()">
+                <option value="">— Escolha uma profissional —</option>
+                {% for p in profissionais %}
+                <option value="{{ p.id }}">{{ p.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="data">Data *</label>
+              <input type="date" id="data" name="data" required onchange="atualizarHorarios()" min="{{ '' }}">
+            </div>
+
+            <div class="form-group">
+              <label>Horário *</label>
+              <input type="hidden" id="horario" name="horario" required>
+              <div class="horarios-wrapper">
+                <div class="horarios-loading" id="horarios-loading" style="display:none;">Carregando horários disponíveis...</div>
+                <div class="horarios-grid" id="horarios-grid"></div>
+                <p class="form-note" id="horarios-hint">Selecione um serviço, profissional e data para ver os horários.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top: 32px; text-align: center;">
+            <button type="submit" class="btn btn-primary btn-lg" id="btn-agendar" disabled>
+              Confirmar Agendamento
+            </button>
+            <p style="color: var(--gray-light); font-size: 0.8rem; margin-top: 12px;">
+              Após o agendamento, você poderá confirmar via WhatsApp.
+            </p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">Ronamy</div>
+      <p class="footer-slogan">"Beleza que transforma sua autoestima"</p>
+      <div class="footer-divider"></div>
+      <p class="footer-copy">© 2024 Salão Ronamy. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- WHATSAPP FLOAT -->
+  <a href="https://wa.me/5511999999999" target="_blank" class="whatsapp-float" title="Fale no WhatsApp">
+    💬
+  </a>
+
+  <script>
+    // Data mínima = hoje
+    const dataInput = document.getElementById('data');
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    dataInput.min = `${ano}-${mes}-${dia}`;
+
+    let horarioSelecionado = '';
+
+    function atualizarHorarios() {
+      const servicoId = document.getElementById('servico_id').value;
+      const profissionalId = document.getElementById('profissional_id').value;
+      const data = document.getElementById('data').value;
+      const grid = document.getElementById('horarios-grid');
+      const loading = document.getElementById('horarios-loading');
+      const hint = document.getElementById('horarios-hint');
+      const btnAgendar = document.getElementById('btn-agendar');
+
+      // Reset horário
+      document.getElementById('horario').value = '';
+      horarioSelecionado = '';
+      btnAgendar.disabled = true;
+      grid.innerHTML = '';
+
+      if (!servicoId || !profissionalId || !data) {
+        hint.style.display = 'block';
+        return;
+      }
+
+      hint.style.display = 'none';
+      loading.style.display = 'block';
+
+      fetch(`/horarios_disponiveis?profissional_id=${profissionalId}&data=${data}&servico_id=${servicoId}`)
+        .then(r => r.json())
+        .then(data => {
+          loading.style.display = 'none';
+          if (!data.horarios || data.horarios.length === 0) {
+            grid.innerHTML = '<p style="color: var(--gray-light); font-style: italic; font-size: 0.9rem; padding: 12px 0;">Nenhum horário disponível para esta data. Tente outra data.</p>';
+            return;
+          }
+          data.horarios.forEach(h => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'horario-btn';
+            btn.textContent = h;
+            btn.onclick = () => selecionarHorario(h, btn);
+            grid.appendChild(btn);
+          });
+        })
+        .catch(() => {
+          loading.style.display = 'none';
+          grid.innerHTML = '<p style="color: var(--danger); font-size: 0.9rem;">Erro ao carregar horários. Tente novamente.</p>';
+        });
+    }
+
+    function selecionarHorario(horario, btn) {
+      document.querySelectorAll('.horario-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('horario').value = horario;
+      horarioSelecionado = horario;
+      document.getElementById('btn-agendar').disabled = false;
+    }
+
+    // Telefone mask
+    document.getElementById('telefone').addEventListener('input', function(e) {
+      let v = e.target.value.replace(/\D/g, '');
+      if (v.length <= 11) {
+        v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+        v = v.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+        v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+      }
+      e.target.value = v;
+    });
+
+    // Validação
+    document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+      if (!document.getElementById('horario').value) {
+        e.preventDefault();
+        alert('Por favor, selecione um horário.');
+        return false;
+      }
+    });
+  </script>
+</body>
+</html>

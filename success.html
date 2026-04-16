@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serviços — Ronamy Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/admin" class="navbar-brand">
+        <div class="navbar-logo">R</div>
+        <div>
+          <div class="navbar-title">Ronamy</div>
+          <span class="navbar-subtitle">Admin</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/" target="_blank">Ver site</a></li>
+        <li><a href="/logout" style="color: var(--danger);">Sair</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Menu</span>
+        <a href="/admin" class="sidebar-link">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <a href="/admin/agendamentos" class="sidebar-link">
+          <span class="icon">📅</span> Agendamentos
+        </a>
+        <a href="/admin/agendamento/novo" class="sidebar-link">
+          <span class="icon">➕</span> Novo Agendamento
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Configurações</span>
+        <a href="/admin/servicos" class="sidebar-link active">
+          <span class="icon">✂️</span> Serviços
+        </a>
+        <a href="/admin/profissionais" class="sidebar-link">
+          <span class="icon">👩</span> Profissionais
+        </a>
+        <a href="/admin/bloqueios" class="sidebar-link">
+          <span class="icon">🔒</span> Bloqueios
+        </a>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% else %}✕{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="page-header">
+        <h1>Serviços <span>✂️</span></h1>
+        <button class="btn btn-primary" onclick="abrirModal('modal-novo')">+ Novo Serviço</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Preço</th>
+              <th>Duração</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in servicos %}
+            <tr>
+              <td class="text-muted fs-sm">{{ s.id }}</td>
+              <td>
+                <strong>{{ s.nome }}</strong>
+              </td>
+              <td class="gold-text fw-600">R$ {{ "%.2f"|format(s.preco)|replace('.', ',') }}</td>
+              <td>
+                {% if s.duracao >= 60 %}
+                  {% set h = s.duracao // 60 %}
+                  {% set m = s.duracao % 60 %}
+                  {% if m == 0 %}{{ h }}h{% else %}{{ h }}h{{ m }}min{% endif %}
+                {% else %}
+                  {{ s.duracao }}min
+                {% endif %}
+              </td>
+              <td>
+                <span class="tag {{ 'tag-active' if s.ativo else 'tag-inactive' }}">
+                  {{ 'Ativo' if s.ativo else 'Inativo' }}
+                </span>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  <button class="btn btn-outline btn-sm" onclick="abrirModalEditar({{ s.id }}, '{{ s.nome }}', {{ s.preco }}, {{ s.duracao }}, {{ s.ativo }})">
+                    Editar
+                  </button>
+                  <form action="/admin/servicos/{{ s.id }}/excluir" method="POST" onsubmit="return confirm('Excluir este serviço?')">
+                    <button class="btn btn-danger btn-sm" type="submit">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--gray-light); padding: 40px;">
+                Nenhum serviço cadastrado.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL NOVO -->
+  <div class="modal-overlay" id="modal-novo">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Novo Serviço</h3>
+        <button class="modal-close" onclick="fecharModal('modal-novo')">×</button>
+      </div>
+      <div class="modal-body">
+        <form action="/admin/servicos/novo" method="POST">
+          <div class="form-group mb-16">
+            <label for="nome_novo">Nome do Serviço *</label>
+            <input type="text" id="nome_novo" name="nome" placeholder="Ex: Corte feminino" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="mb-24">
+            <div class="form-group">
+              <label for="preco_novo">Preço (R$) *</label>
+              <input type="number" id="preco_novo" name="preco" step="0.01" min="0" placeholder="50.00" required>
+            </div>
+            <div class="form-group">
+              <label for="duracao_novo">Duração (minutos) *</label>
+              <input type="number" id="duracao_novo" name="duracao" min="15" step="5" placeholder="30" required>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModal('modal-novo')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR -->
+  <div class="modal-overlay" id="modal-editar">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar Serviço</h3>
+        <button class="modal-close" onclick="fecharModal('modal-editar')">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-editar" action="" method="POST">
+          <div class="form-group mb-16">
+            <label for="nome_edit">Nome do Serviço *</label>
+            <input type="text" id="nome_edit" name="nome" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="mb-16">
+            <div class="form-group">
+              <label for="preco_edit">Preço (R$) *</label>
+              <input type="number" id="preco_edit" name="preco" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="duracao_edit">Duração (min) *</label>
+              <input type="number" id="duracao_edit" name="duracao" min="15" step="5" required>
+            </div>
+          </div>
+          <div class="form-group mb-24" style="flex-direction: row; align-items: center; gap: 10px;">
+            <input type="checkbox" id="ativo_edit" name="ativo" style="width: auto;">
+            <label for="ativo_edit" style="text-transform: none; font-size: 0.9rem; cursor: pointer;">Serviço ativo</label>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModal('modal-editar')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function abrirModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function abrirModalEditar(id, nome, preco, duracao, ativo) {
+      document.getElementById('form-editar').action = `/admin/servicos/${id}/editar`;
+      document.getElementById('nome_edit').value = nome;
+      document.getElementById('preco_edit').value = preco;
+      document.getElementById('duracao_edit').value = duracao;
+      document.getElementById('ativo_edit').checked = ativo === 1;
+      abrirModal('modal-editar');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

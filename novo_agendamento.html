@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profissionais — Ronamy Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/admin" class="navbar-brand">
+        <div class="navbar-logo">R</div>
+        <div>
+          <div class="navbar-title">Ronamy</div>
+          <span class="navbar-subtitle">Admin</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/" target="_blank">Ver site</a></li>
+        <li><a href="/logout" style="color: var(--danger);">Sair</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Menu</span>
+        <a href="/admin" class="sidebar-link">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <a href="/admin/agendamentos" class="sidebar-link">
+          <span class="icon">📅</span> Agendamentos
+        </a>
+        <a href="/admin/agendamento/novo" class="sidebar-link">
+          <span class="icon">➕</span> Novo Agendamento
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Configurações</span>
+        <a href="/admin/servicos" class="sidebar-link">
+          <span class="icon">✂️</span> Serviços
+        </a>
+        <a href="/admin/profissionais" class="sidebar-link active">
+          <span class="icon">👩</span> Profissionais
+        </a>
+        <a href="/admin/bloqueios" class="sidebar-link">
+          <span class="icon">🔒</span> Bloqueios
+        </a>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% else %}✕{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="page-header">
+        <h1>Profissionais <span>👩</span></h1>
+        <button class="btn btn-primary" onclick="abrirModal('modal-novo')">+ Nova Profissional</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nome</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in profissionais %}
+            <tr>
+              <td class="text-muted fs-sm">{{ p.id }}</td>
+              <td><strong>{{ p.nome }}</strong></td>
+              <td>
+                <span class="tag {{ 'tag-active' if p.ativo else 'tag-inactive' }}">
+                  {{ 'Ativa' if p.ativo else 'Inativa' }}
+                </span>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  <button class="btn btn-outline btn-sm" onclick="abrirModalEditar({{ p.id }}, '{{ p.nome }}', {{ p.ativo }})">
+                    Editar
+                  </button>
+                  <form action="/admin/profissionais/{{ p.id }}/excluir" method="POST" onsubmit="return confirm('Excluir esta profissional?')">
+                    <button class="btn btn-danger btn-sm" type="submit">Excluir</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--gray-light); padding: 40px;">
+                Nenhuma profissional cadastrada.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL NOVO -->
+  <div class="modal-overlay" id="modal-novo">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Nova Profissional</h3>
+        <button class="modal-close" onclick="fecharModal('modal-novo')">×</button>
+      </div>
+      <div class="modal-body">
+        <form action="/admin/profissionais/novo" method="POST">
+          <div class="form-group mb-24">
+            <label for="nome_novo">Nome *</label>
+            <input type="text" id="nome_novo" name="nome" placeholder="Ex: Maria Santos" required>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModal('modal-novo')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR -->
+  <div class="modal-overlay" id="modal-editar">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar Profissional</h3>
+        <button class="modal-close" onclick="fecharModal('modal-editar')">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-editar" action="" method="POST">
+          <div class="form-group mb-16">
+            <label for="nome_edit">Nome *</label>
+            <input type="text" id="nome_edit" name="nome" required>
+          </div>
+          <div class="form-group mb-24" style="flex-direction: row; align-items: center; gap: 10px;">
+            <input type="checkbox" id="ativo_edit" name="ativo" style="width: auto;">
+            <label for="ativo_edit" style="text-transform: none; font-size: 0.9rem; cursor: pointer;">Profissional ativa</label>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModal('modal-editar')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function abrirModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function abrirModalEditar(id, nome, ativo) {
+      document.getElementById('form-editar').action = `/admin/profissionais/${id}/editar`;
+      document.getElementById('nome_edit').value = nome;
+      document.getElementById('ativo_edit').checked = ativo === 1;
+      abrirModal('modal-editar');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

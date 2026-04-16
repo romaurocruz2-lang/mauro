@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamentos — Ronamy Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/admin" class="navbar-brand">
+        <div class="navbar-logo">R</div>
+        <div>
+          <div class="navbar-title">Ronamy</div>
+          <span class="navbar-subtitle">Admin</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/" target="_blank">Ver site</a></li>
+        <li><a href="/logout" style="color: var(--danger);">Sair</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Menu</span>
+        <a href="/admin" class="sidebar-link">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <a href="/admin/agendamentos" class="sidebar-link active">
+          <span class="icon">📅</span> Agendamentos
+        </a>
+        <a href="/admin/agendamento/novo" class="sidebar-link">
+          <span class="icon">➕</span> Novo Agendamento
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Configurações</span>
+        <a href="/admin/servicos" class="sidebar-link">
+          <span class="icon">✂️</span> Serviços
+        </a>
+        <a href="/admin/profissionais" class="sidebar-link">
+          <span class="icon">👩</span> Profissionais
+        </a>
+        <a href="/admin/bloqueios" class="sidebar-link">
+          <span class="icon">🔒</span> Bloqueios
+        </a>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% else %}✕{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="page-header">
+        <h1>Agendamentos <span>📅</span></h1>
+        <a href="/admin/agendamento/novo" class="btn btn-primary">+ Novo Agendamento</a>
+      </div>
+
+      <!-- FILTROS -->
+      <form action="/admin/agendamentos" method="GET">
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Data</label>
+            <input type="date" name="data" value="{{ data_filtro }}">
+          </div>
+          <div class="filter-group">
+            <label>Profissional</label>
+            <select name="profissional_id">
+              <option value="">Todas</option>
+              {% for p in profissionais %}
+              <option value="{{ p.id }}" {% if profissional_filtro == p.id|string %}selected{% endif %}>{{ p.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select name="status">
+              <option value="">Todos</option>
+              <option value="confirmado" {% if status_filtro == 'confirmado' %}selected{% endif %}>Confirmado</option>
+              <option value="cancelado" {% if status_filtro == 'cancelado' %}selected{% endif %}>Cancelado</option>
+            </select>
+          </div>
+          <div class="filter-group" style="justify-content: flex-end;">
+            <label>&nbsp;</label>
+            <div style="display: flex; gap: 8px;">
+              <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+              <a href="/admin/agendamentos" class="btn btn-outline btn-sm">Limpar</a>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Data / Horário</th>
+              <th>Cliente</th>
+              <th>Serviço</th>
+              <th>Profissional</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ag in agendamentos %}
+            <tr>
+              <td class="text-muted fs-sm">{{ ag.id }}</td>
+              <td>
+                <strong>{{ ag.data.split('-')[2] }}/{{ ag.data.split('-')[1] }}/{{ ag.data.split('-')[0] }}</strong><br>
+                <span class="gold-text fw-600">{{ ag.horario }}</span>
+              </td>
+              <td>
+                {{ ag.cliente_nome }}<br>
+                <span class="fs-sm text-muted">{{ ag.cliente_telefone }}</span>
+              </td>
+              <td>{{ ag.servico_nome }}</td>
+              <td>{{ ag.profissional_nome }}</td>
+              <td class="gold-text fw-600">R$ {{ "%.0f"|format(ag.preco) }}</td>
+              <td>
+                <span class="badge badge-{{ 'success' if ag.status == 'confirmado' else 'danger' }}">
+                  {{ ag.status }}
+                </span>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  {% if ag.status == 'confirmado' %}
+                  <form action="/admin/agendamento/{{ ag.id }}/cancelar" method="POST" onsubmit="return confirm('Cancelar este agendamento?')">
+                    <button class="btn btn-danger btn-sm" type="submit">Cancelar</button>
+                  </form>
+                  {% else %}
+                  <form action="/admin/agendamento/{{ ag.id }}/confirmar" method="POST">
+                    <button class="btn btn-success btn-sm" type="submit">Confirmar</button>
+                  </form>
+                  {% endif %}
+                  {% if ag.cliente_telefone %}
+                  <a href="https://wa.me/55{{ ag.cliente_telefone|replace('(','') |replace(')','') |replace(' ','') |replace('-','') }}" target="_blank" class="btn btn-outline btn-sm">💬</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8">
+                <div class="empty-state">
+                  <div class="empty-state-icon">📅</div>
+                  <p class="empty-state-text">Nenhum agendamento encontrado.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>

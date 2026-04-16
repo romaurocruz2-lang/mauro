@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloqueios — Ronamy Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/admin" class="navbar-brand">
+        <div class="navbar-logo">R</div>
+        <div>
+          <div class="navbar-title">Ronamy</div>
+          <span class="navbar-subtitle">Admin</span>
+        </div>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/" target="_blank">Ver site</a></li>
+        <li><a href="/logout" style="color: var(--danger);">Sair</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Menu</span>
+        <a href="/admin" class="sidebar-link">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <a href="/admin/agendamentos" class="sidebar-link">
+          <span class="icon">📅</span> Agendamentos
+        </a>
+        <a href="/admin/agendamento/novo" class="sidebar-link">
+          <span class="icon">➕</span> Novo Agendamento
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Configurações</span>
+        <a href="/admin/servicos" class="sidebar-link">
+          <span class="icon">✂️</span> Serviços
+        </a>
+        <a href="/admin/profissionais" class="sidebar-link">
+          <span class="icon">👩</span> Profissionais
+        </a>
+        <a href="/admin/bloqueios" class="sidebar-link active">
+          <span class="icon">🔒</span> Bloqueios
+        </a>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% else %}✕{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="page-header">
+        <h1>Bloqueio de <span>Horários</span></h1>
+        <button class="btn btn-primary" onclick="abrirModal('modal-novo')">+ Novo Bloqueio</button>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom: 20px;">
+        🔒 Bloqueie horários específicos para impedir agendamentos durante férias, feriados ou ausências.
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Profissional</th>
+              <th>Data</th>
+              <th>Horário</th>
+              <th>Motivo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bloqueios %}
+            <tr>
+              <td class="text-muted fs-sm">{{ b.id }}</td>
+              <td><strong>{{ b.profissional_nome }}</strong></td>
+              <td>{{ b.data.split('-')[2] }}/{{ b.data.split('-')[1] }}/{{ b.data.split('-')[0] }}</td>
+              <td class="gold-text fw-600">{{ b.horario }}</td>
+              <td class="text-muted">{{ b.motivo or '—' }}</td>
+              <td>
+                <form action="/admin/bloqueios/{{ b.id }}/excluir" method="POST" onsubmit="return confirm('Remover este bloqueio?')">
+                  <button class="btn btn-danger btn-sm" type="submit">Remover</button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-state-icon">🔒</div>
+                  <p class="empty-state-text">Nenhum horário bloqueado.</p>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL NOVO BLOQUEIO -->
+  <div class="modal-overlay" id="modal-novo">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Bloquear Horário</h3>
+        <button class="modal-close" onclick="fecharModal('modal-novo')">×</button>
+      </div>
+      <div class="modal-body">
+        <form action="/admin/bloqueios/novo" method="POST">
+          <div class="form-group mb-16">
+            <label>Profissional *</label>
+            <select name="profissional_id" required>
+              <option value="">— Selecione —</option>
+              {% for p in profissionais %}
+              <option value="{{ p.id }}">{{ p.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;" class="mb-16">
+            <div class="form-group">
+              <label>Data *</label>
+              <input type="date" name="data" required>
+            </div>
+            <div class="form-group">
+              <label>Horário *</label>
+              <select name="horario" required>
+                <option value="">— Selecione —</option>
+                {% for h in horarios %}
+                <option value="{{ h }}">{{ h }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-group mb-24">
+            <label>Motivo (opcional)</label>
+            <input type="text" name="motivo" placeholder="Ex: Férias, Feriado...">
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Bloquear</button>
+            <button type="button" class="btn btn-outline" onclick="fecharModal('modal-novo')">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function abrirModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

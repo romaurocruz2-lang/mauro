@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Ronamy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">R</div>
+        <h1 class="login-title">Ronamy</h1>
+        <p class="login-subtitle">Painel Administrativo</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {% if category == 'success' %}✓{% else %}✕{% endif %}
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form action="/login" method="POST">
+        <div class="form-group mb-16">
+          <label for="username">Usuário</label>
+          <input type="text" id="username" name="username" placeholder="Digite seu usuário" required autofocus>
+        </div>
+
+        <div class="form-group mb-24">
+          <label for="password">Senha</label>
+          <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          Entrar
+        </button>
+      </form>
+
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="/" style="color: var(--gray-light); font-size: 0.85rem; text-decoration: none;">
+          ← Voltar ao site
+        </a>
+      </div>
+
+      <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--dark3); text-align: center;">
+        <div class="footer-logo" style="font-size: 1.2rem; margin-bottom: 4px;">Ronamy</div>
+        <p style="color: var(--gray); font-size: 0.75rem; font-style: italic;">"Beleza que transforma sua autoestima"</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
