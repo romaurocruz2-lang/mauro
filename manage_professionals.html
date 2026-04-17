@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ronamy — Agendamentos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+<div class="admin-layout">
+  {% include 'sidebar.html' %}
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div class="page-title">Agendamentos</div>
+      <a href="/admin/agendar-manual" class="btn btn-gold btn-sm">+ Novo</a>
+    </div>
+    <div class="admin-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat, msg in messages %}
+          <div class="flash {{ cat }}" style="margin-bottom:16px;">{{ msg }}</div>
+        {% endfor %}{% endif %}
+      {% endwith %}
+
+      <form method="GET" action="/admin/agendamentos" class="filter-bar">
+        <div class="form-group">
+          <label>Filtrar por profissional</label>
+          <select name="profissional_id" onchange="this.form.submit()">
+            <option value="">Todas</option>
+            {% for p in professionals %}
+              <option value="{{ p.id }}" {% if prof_filter == p.id|string %}selected{% endif %}>{{ p.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if prof_filter %}
+          <a href="/admin/agendamentos" class="btn btn-outline btn-sm" style="align-self:flex-end;">Limpar filtro</a>
+        {% endif %}
+      </form>
+
+      <div class="table-card">
+        <div class="table-header">
+          <h3>Lista de agendamentos ({{ appts | length }})</h3>
+        </div>
+        {% if appts %}
+        <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>WhatsApp</th>
+              <th>Profissional</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Hora</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in appts %}
+            <tr>
+              <td style="color:var(--gray);">#{{ a.id }}</td>
+              <td><strong>{{ a.nome }}</strong></td>
+              <td>
+                <a href="https://wa.me/55{{ a.whatsapp | replace('(','') | replace(')','') | replace(' ','') | replace('-','') }}"
+                   target="_blank" style="color:#25D366;font-size:13px;">{{ a.whatsapp }}</a>
+              </td>
+              <td>{{ a.prof_nome }}</td>
+              <td>{{ a.svc_nome }}<br><span style="font-size:11px;color:var(--gold);">R$ {{ "%.2f"|format(a.preco) }}</span></td>
+              <td>{{ a.data }}</td>
+              <td>{{ a.hora }}</td>
+              <td>
+                {% if a.status == 'confirmado' %}<span class="badge badge-green">Confirmado</span>
+                {% elif a.status == 'concluido' %}<span class="badge badge-gold">Concluído</span>
+                {% elif a.status == 'cancelado' %}<span class="badge badge-red">Cancelado</span>
+                {% else %}<span class="badge badge-yellow">{{ a.status | capitalize }}</span>{% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <form method="POST" action="/admin/agendamentos/status/{{ a.id }}" class="status-form">
+                    <select name="status">
+                      <option value="confirmado" {% if a.status=='confirmado' %}selected{% endif %}>Confirmado</option>
+                      <option value="concluido" {% if a.status=='concluido' %}selected{% endif %}>Concluído</option>
+                      <option value="pendente" {% if a.status=='pendente' %}selected{% endif %}>Pendente</option>
+                      <option value="cancelado" {% if a.status=='cancelado' %}selected{% endif %}>Cancelado</option>
+                    </select>
+                    <button type="submit" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:11px;">Salvar</button>
+                  </form>
+                  {% if a.status != 'cancelado' %}
+                  <form method="POST" action="/admin/agendamentos/cancelar/{{ a.id }}"
+                        onsubmit="return confirm('Cancelar este agendamento?')">
+                    <button type="submit" class="btn btn-danger">Cancelar</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+          <div class="empty-state">Nenhum agendamento encontrado.</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
